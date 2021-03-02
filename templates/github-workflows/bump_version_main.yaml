@@ -1,0 +1,25 @@
+name: Version Bump
+on:
+  push:
+    branches:
+      - main
+      
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '0'
+    - name: Bump version and push tag
+      uses: anothrNick/github-tag-action@1.26.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DEFAULT_BUMP: none
+        WITH_V: true
+        RELEASE_BRANCHES: main
+        INITIAL_VERSION: 0.0.0
+        DRY_RUN: false
+        TAG_CONTEXT: repo
+        PRERELEASE_SUFFIX: beta
+        VERBOSE: true
