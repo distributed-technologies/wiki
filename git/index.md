@@ -1,4 +1,3 @@
-
 # Git
 
 Overall documentation for everything related to Git repos.

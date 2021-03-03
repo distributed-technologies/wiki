@@ -1,4 +1,3 @@
-
 # Git structure
 
 All our git repositories will always contain two files:

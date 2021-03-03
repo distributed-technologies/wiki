@@ -1,4 +1,3 @@
-
 # Conventions
 
 ## make
@@ -33,7 +32,6 @@ each of the commands.
 
 
 
-
 ## Folder conventions
 
 This section describes a list of folders with we all 
@@ -49,7 +47,7 @@ and other files that are used to document the repository.
 
 This is the folder for all our repos containing a helm chart.
 The chart will always be in the chart folder, which may
-contain 3 folders
+contain 3 folders:
 
 - ./charts/
 - ./templates/
@@ -65,6 +63,6 @@ The values.schema.json is used to validate the value input
 files, and should always ensure correct use of the chart, 
 more info can be found here: https://helm.sh/docs/topics/charts/
 
-### /.artifacts
+### /artifacts
 
 Common folder for all artifacts generated as part of the make process.
