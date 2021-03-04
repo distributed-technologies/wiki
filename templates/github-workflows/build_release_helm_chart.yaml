@@ -6,28 +6,49 @@ on:
     branches: main
     types: 
       - completed
+  push:
+    tags:
+      - 'v[0-9]\.[0-9]\.[0-9]*'
 
 jobs:
   build:
     # Only run the job if the Version Bump action was succesfull
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    
     runs-on: ubuntu-latest
-    env:
-      # Copy the github ref e.g. /refs/tags/v1.0.1 to environment variable
-      VERSION_TAG_STRING: ${{ github.ref  }}
-
+    env: 
+      USE_QUOTES_HELM: true # Weather or not to use quotes around your helm version e.g. "v1.0.0" and not v1.0.0
     steps:
       - uses: actions/checkout@v2
-      # Ecxtract the tag
-      - name: Extact version tag
-        run:  echo "VERSION_TAG=$(echo $VERSION_TAG_STRING | cut -f3- -d/)" >> $GITHUB_ENV
-      # Lint the chart
-      - name: Lint
+
+      # Extract last tag and update helm chart. 
+      - name: 'Get Previous tag'
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+
+      - name: Update Helm Chart version
+        if: ${{ env.USE_QUOTES_HELM }} 
+        run: |
+          sed -i 's/version: \"v[0-9]\.[0-9]\.[0-9]\"/version: "${{ steps.previoustag.outputs.tag }}"/g' chart/Chart.yaml
+
+      - name: Update Helm Chart version
+        if: ${{ !env.USE_QUOTES_HELM }} 
+        run: |
+          sed -i 's/version: v[0-9]\.[0-9]\.[0-9]/version: "${{ steps.previoustag.outputs.tag }}"/g' chart/Chart.yaml
+
+      - name: Commit Helm version
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with: 
+          commit_message: "New helm chart version ${{ steps.previoustag.outputs.tag }}"
+          # As the action is trigger on a tag, no branch exists. Therefore we specify it
+          branch: main
+
+      - name: Helm lint
         run: helm lint chart
+
       # Build the archive to release
       - name: Build
         run: helm package chart
+
       # Create the release
       - name: Create Release
         id: create_release
@@ -35,20 +56,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with: 
-          tag_name: ${{ env.VERSION_TAG }}
-          release_name: Release ${{ env.VERSION_TAG }}
+          tag_name: ${{ steps.previoustag.outputs.tag }}
+          release_name: Release ${{ steps.previoustag.outputs.tag }}
           draft: false
           prerelease: false
+
       # Connect the archive to the release
+      - name: Set CHART_NAME env
+        run: |
+          echo "CHART_NAME=$(helm show chart chart/ | grep "name: mukube-*" | cut -f2- -d' ')" >> $GITHUB_ENV
+          
       - name: Upload Release Asset
         id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} 
-          # Chart version is keept at 0.1.0 for all charts 
-          # Give the name of the .tgz file that helm package outputs
-          asset_path: #Helm package archive nave
-          asset_name: #The name of the release file e.g. mukube-chart-${{ env.VERSION_TAG }}.tgz
+          upload_url: ${{ steps.create_release.outputs.upload_url }}  
+          asset_path: ./${{ env.CHART_NAME }}-${{ steps.previoustag.outputs.tag }}.tgz
+          asset_name: ./${{ env.CHART_NAME }}-${{ steps.previoustag.outputs.tag }}.tgz
           asset_content_type: application/zip
