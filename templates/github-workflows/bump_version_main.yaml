@@ -23,3 +23,4 @@ jobs:
         TAG_CONTEXT: repo
         PRERELEASE_SUFFIX: beta
         VERBOSE: true
+        
