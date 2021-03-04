@@ -25,6 +25,18 @@ jobs:
         uses: actions-ecosystem/action-get-latest-tag@v1
         id: get-latest-tag
 
+      - name: Delete tag remote
+        uses: dev-drprasad/delete-tag-and-release@v0.1.3
+        with:
+          tag_name: ${{ steps.get-latest-tag.outputs.tag }} # tag name to delete
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      # Checkout after tag delete
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
       - name: Update Helm Chart version
         if: ${{ env.USE_QUOTES_HELM }} 
         run: |
@@ -41,7 +53,8 @@ jobs:
           commit_message: "New helm chart version ${{ steps.get-latest-tag.outputs.tag }}"
           # As the action is trigger on a tag, no branch exists. Therefore we specify it
           branch: main
-
+          tagging_message: ${{ steps.get-latest-tag.outputs.tag }}
+      
       - name: Helm lint
         run: helm lint chart
 
