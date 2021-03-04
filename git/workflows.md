@@ -1,4 +1,4 @@
-#### Git workflows
+# Git workflows
 To use any of the git workflow templates, copy the workflow file into the /.github/workflows/ folder in your github repository. Some workflows work out of the box, while some needs to be configured for a specific usecase. This will be explicitly stated in a **configuration** paragraph under the workflow section. 
 
 ### Version Bump 
