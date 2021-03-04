@@ -11,7 +11,7 @@ The [**Version Bump**](templates/github-workflows/bump_version_main.yaml) workfl
 This means that if you e.g. want to bump the version v1.0.0 to v1.0.1 your commit message to main should include the string '#patch'. There is no default version bump and therefore this workflow will fail if the commit message does not contain any of the three strings required to bump a specific version.
 
 ### Build and release helm chart
-The [**Build and release helm chart**](templates/github-workflows/build_release_helm_chart.yaml) workflow, lints, builds and releases a helm chart to github while updating the chart version to the most resent tagged version in the git repository.
+The [**Build and release helm chart**](templates/github-workflows/build_release_helm_chart.yaml) workflow, lints, builds and releases a helm chart to github while updating the chart version to the most resent tagged version in the git repository. The workflow is triggered when the **Version Bump** workflow completes or when a new tag is pushed. 
 
 #### configuration
 In the workflow you can set a value for **USE_QUOTES_HELM** to true or false.
