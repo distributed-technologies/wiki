@@ -15,16 +15,19 @@ jobs:
       - name: 'Get Previous tag'
         id: previoustag
         uses: "WyriHaximus/github-action-get-previous-tag@v1"
+
     # Get next valid semvers
       - name: 'Get next versions'
         id: semvers
         uses: "WyriHaximus/github-action-next-semvers@v1"
         with:
           version: ${{ steps.previoustag.outputs.tag }}
+
       # Checkout pullrequest branch
       - name: Find commit
         run: |
           echo COMMIT=${{ github.event.after }} >> $GITHUB_ENV
+
       - name: Get Branch
         run: |
           raw=$(git branch -r --contains ${{ env.COMMIT }})
@@ -38,6 +41,7 @@ jobs:
       - name: Get helm chart version
         run: | 
           echo HELM_VERSION=$(grep "version: " chart/Chart.yaml | cut -f2 -d' ') >> $GITHUB_ENV
+          
       - name: Print version
         run: echo ${{ env.HELM_VERSION }}
         
