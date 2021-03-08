@@ -1,4 +1,4 @@
-name: Version Check
+name: Helm Chart Version Check
 on:
   pull_request:
 

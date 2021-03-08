@@ -10,6 +10,9 @@ The [**Version Bump**](../templates/github-workflows/bump_version_main.yaml) wor
 
 This means that if you e.g. want to bump the version v1.0.0 to v1.0.1 your commit message to main should include the string '#patch'. There is no default version bump and therefore this workflow will fail if the commit message does not contain any of the three strings required to bump a specific version.
 
+### Helm Chart Version Check
+The [**Helm Chart Version Check**](../templates/github-workflows/check_helm_chart_version.yaml) workflow checks if the version in the chart/Charts.yaml file is a correct bump compared to the latest version tag on main.
+
 ### Build and release helm chart
 The [**Build and release helm chart**](../templates/github-workflows/build_release_helm_chart.yaml) workflow, lints, retags, builds and releases a helm chart to github while updating the chart version to the most resent tagged version in the git repository. The workflow is triggered when the **Version Bump** workflow completes or when a new tag is pushed. 
 
