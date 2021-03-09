@@ -1,7 +1,8 @@
 name: Helm Chart Version Check
 on:
   pull_request:
-
+    branches: 
+      - main
 jobs:
   check_version:
     runs-on: ubuntu-latest
