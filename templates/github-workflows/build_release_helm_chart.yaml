@@ -1,74 +1,16 @@
 name: Build and release helm chart
  
 on:
-  workflow_run:
-    workflows: ["Version Bump"]
-    branches: main
-    types: 
-      - completed
-  push:
-    tags:
-      - 'v[0-9]*\.[0-9]*\.[0-9]*'
+  push: 
+    main
 
 jobs:
   build:
-    # Only run the job if the Version Bump action was succesfull or if the workflow was triggered by a push to tags
-    if: ${{ github.event.workflow_run.conclusion == 'success' || startsWith(github.event.ref, 'refs/tags/v' ) }}
     runs-on: ubuntu-latest
-    env: 
-      USE_QUOTES_HELM: true # Weather or not to use quotes around your helm version e.g. "v1.0.0" and not v1.0.0
     steps:
-      - name: Find commit that was tagged
+      - name: Find tag from helm chart
         run: |
-          echo COMMIT=${{ github.event.after }} >> $GITHUB_ENV
-      - name: Jump into main
-        uses: actions/checkout@v2
-        with:
-          ref: 'main'
-
-      - name: Get Branchname from tag
-        run: |
-          raw=$(git branch -r --contains ${{ env.COMMIT }})
-          branch=${raw##*/}
-          echo BRANCH=$branch >> $GITHUB_ENV
-
-      - uses: actions/checkout@v2
-        with:
-          ref: ${{ env.BRANCH }}
-
-      # Extract last tag and update helm chart. 
-      - name: 'Get Previous tag'
-        uses: actions-ecosystem/action-get-latest-tag@v1
-        id: get-latest-tag
-
-      - name: Delete tag remote
-        uses: dev-drprasad/delete-tag-and-release@v0.1.3
-        with:
-          tag_name: ${{ steps.get-latest-tag.outputs.tag }} # tag name to delete
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      # Checkout after tag delete
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: ${{ env.BRANCH }}
-
-      - name: Update Helm Chart version
-        if: ${{ env.USE_QUOTES_HELM }} 
-        run: |
-          sed -i 's/version: \"v.*\"/version: "${{ steps.get-latest-tag.outputs.tag }}"/g' chart/Chart.yaml
-
-      - name: Update Helm Chart version
-        if: ${{ !env.USE_QUOTES_HELM }} 
-        run: |
-          sed -i 's/version: v.*/version: ${{ steps.get-latest-tag.outputs.tag }}/g' chart/Chart.yaml
-
-      - name: Commit Helm version
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with: 
-          commit_message: "New helm chart version ${{ steps.get-latest-tag.outputs.tag }}"
-          tagging_message: ${{ steps.get-latest-tag.outputs.tag }}
+          echo HELM_VERSION=$(grep "version: " chart/Chart.yaml | cut -f2 -d' ') >> $GITHUB_ENV
     
       - name: Helm lint
         run: helm lint chart
@@ -84,8 +26,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with: 
-          tag_name: ${{ steps.get-latest-tag.outputs.tag }}
-          release_name: Release ${{ steps.get-latest-tag.outputs.tag }}
+          tag_name: ${{ env.HELM_VERSION }}
+          release_name: Release ${{ env.HELM_VERSION }}
           draft: false
           prerelease: false
 
@@ -101,6 +43,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}  
-          asset_path: ./${{ env.CHART_NAME }}-${{ steps.get-latest-tag.outputs.tag }}.tgz
-          asset_name: ./${{ env.CHART_NAME }}-${{ steps.get-latest-tag.outputs.tag }}.tgz
+          asset_path: ./${{ env.CHART_NAME }}-${{ env.HELM_VERSION }}.tgz
+          asset_name: ./${{ env.CHART_NAME }}-${{ env.HELM_VERSION }}.tgz
           asset_content_type: application/zip
