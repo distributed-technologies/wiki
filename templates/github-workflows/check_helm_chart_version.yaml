@@ -23,20 +23,9 @@ jobs:
         with:
           version: ${{ steps.previoustag.outputs.tag }}
 
-      # Checkout pullrequest branch
-      - name: Find commit
-        run: |
-          echo COMMIT=${{ github.event.after }} >> $GITHUB_ENV
-
-      - name: Get Branch
-        run: |
-          raw=$(git branch -r --contains ${{ env.COMMIT }})
-          branch=${raw##*/}
-          echo BRANCH=$branch >> $GITHUB_ENV
-
       - uses: actions/checkout@v2
         with:
-          ref: ${{ env.BRANCH }}
+          ref: ${{ github.head_ref }}
 
       - name: Get helm chart version
         run: | 
