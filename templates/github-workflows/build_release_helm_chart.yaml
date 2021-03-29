@@ -46,5 +46,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}  
           asset_path: ./${{ env.CHART_NAME }}-${{ env.HELM_VERSION }}.tgz
-          asset_name: ./${{ env.CHART_NAME }}-${{ env.HELM_VERSION }}.tgz
+          asset_name: ${{ env.CHART_NAME }}-${{ env.HELM_VERSION }}.tgz
           asset_content_type: application/zip
